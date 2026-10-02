@@ -141,15 +141,25 @@ PY
   fi
   echo "model: $MODEL ($MODEL_WHY)" >&2
 
-  PROMPT="$(cat CYCLE.md)"
+  PROCEDURE_FILES=(CYCLE.md)
   if [ "$REAL_MODE" -eq 1 ]; then
     if [ "$PEARL_UP" -eq 1 ] \
        && python3 core/real.py doctor 2>/dev/null | grep -q '"ready": true'; then
-      PROMPT="$(cat CYCLE.md REAL.md)"
+      PROCEDURE_FILES=(CYCLE.md REAL.md)
     else
       echo "WARNING: --real requested but Pearl Connect signer not ready — running paper-only cycle" >&2
     fi
   fi
+  # The bare procedure reads as a reference document, and the CLI appends its
+  # context reminders after it: on 2026-10-02 Sonnet took it for "project
+  # context" and asked what to do. Wrap it in an explicit instruction.
+  PROMPT="Run one trading cycle now: follow the procedure below exactly once, starting at step 0, then stop.
+
+<procedure>
+$(cat "${PROCEDURE_FILES[@]}")
+</procedure>
+
+Begin now with step 0 of the procedure above."
 
   # No "Bash(git push:*)": on this machine loop.sh owns the push (see the
   # push block below). The ref plumbing is allowlisted because CYCLE.md
