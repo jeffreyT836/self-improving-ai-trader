@@ -156,7 +156,15 @@ PY
   # step 9 and its rebase path mandate exactly these commands, and a
   # permission-blocked "checkout -B" strands the cycle's commits on a
   # detached HEAD (2026-08-28).
+  # Isolate the session from the operator's personal Claude Code setup
+  # (user plugins, hooks, MCP servers, agents, ~/.claude CLAUDE.md + rules),
+  # so a local tick sees the same context as a cloud tick. Without this the
+  # first local run (2026-10-02) got ~67k tokens of personal config around
+  # CYCLE.md and replied "Ready — what would you like me to do?". Auth is
+  # unaffected; --mcp-config below still applies under --strict-mcp-config.
   CMD=(claude -p "$PROMPT" --model "$MODEL"
+       --setting-sources project,local --strict-mcp-config
+       --settings "{\"claudeMdExcludes\":[\"$HOME/.claude/**\"]}"
        --allowedTools "Read" "Glob" "Grep" "WebSearch" "WebFetch"
          "Edit" "Write" "Task"
          "Bash(python3 core/*)" "Bash(git add:*)" "Bash(git commit:*)"
